@@ -143,6 +143,10 @@ class DiscountHistoryIntegrityTest {
 		List<DiscountHistory> histories = discountHistoryRepository
 			.findAllByPaymentId(response.paymentId());
 		assertThat(histories).hasSize(2);
+		assertThat(histories.stream()
+			.map(DiscountHistory::getDiscountAmount)
+			.reduce(BigDecimal.ZERO, BigDecimal::add))
+			.isEqualByComparingTo(response.discountAmount());
 	}
 
 	private Order saveOrder(MemberGrade grade, BigDecimal price) {

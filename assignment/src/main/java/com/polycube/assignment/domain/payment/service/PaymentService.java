@@ -47,12 +47,18 @@ public class PaymentService {
 		PaymentMethod method = request.method();
 
 		// 1. 등급 할인 계산 (원가 기준)
-		List<DiscountResult> gradeDiscounts = discountService.calculateDiscountDetails(grade, originalPrice);
+		List<DiscountResult> gradeDiscounts = normalizeDiscountResults(
+			discountService.calculateDiscountDetails(grade, originalPrice),
+			originalPrice
+		);
 		BigDecimal gradeDiscountTotal = sumDiscounts(gradeDiscounts).min(originalPrice);
 		BigDecimal afterGradePrice = originalPrice.subtract(gradeDiscountTotal);
 
 		// 2. 결제 수단 추가 할인 계산 (등급 할인 후 금액 기준)
-		List<DiscountResult> methodDiscounts = paymentMethodDiscountService.calculateDiscountDetails(method, afterGradePrice);
+		List<DiscountResult> methodDiscounts = normalizeDiscountResults(
+			paymentMethodDiscountService.calculateDiscountDetails(method, afterGradePrice),
+			afterGradePrice
+		);
 		BigDecimal methodDiscountTotal = sumDiscounts(methodDiscounts).min(afterGradePrice);
 
 		BigDecimal totalDiscount = gradeDiscountTotal.add(methodDiscountTotal);
@@ -104,5 +110,18 @@ public class PaymentService {
 		return results.stream()
 			.map(DiscountResult::discountAmount)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	private List<DiscountResult> normalizeDiscountResults(List<DiscountResult> results, BigDecimal maxDiscount) {
+		BigDecimal remaining = maxDiscount;
+		List<DiscountResult> normalized = new ArrayList<>();
+
+		for (DiscountResult result : results) {
+			BigDecimal appliedAmount = result.discountAmount().min(remaining);
+			normalized.add(result.withDiscountAmount(appliedAmount));
+			remaining = remaining.subtract(appliedAmount);
+		}
+
+		return normalized;
 	}
 }

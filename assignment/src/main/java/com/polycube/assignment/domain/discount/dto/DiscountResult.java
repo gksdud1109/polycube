@@ -12,4 +12,7 @@ public record DiscountResult(
 	BigDecimal discountRate,
 	BigDecimal discountAmount
 ) {
+	public DiscountResult withDiscountAmount(BigDecimal discountAmount) {
+		return new DiscountResult(policyName, discountRate, discountAmount);
+	}
 }
