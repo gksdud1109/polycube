@@ -21,6 +21,7 @@ import com.polycube.assignment.domain.payment.dto.PaymentRequest;
 import com.polycube.assignment.domain.payment.dto.PaymentResponse;
 import com.polycube.assignment.domain.payment.entity.PaymentMethod;
 import com.polycube.assignment.domain.payment.exception.PaymentErrorCode;
+import com.polycube.assignment.domain.discount.repository.DiscountHistoryRepository;
 import com.polycube.assignment.domain.payment.repository.PaymentRepository;
 import com.polycube.assignment.global.error.BusinessException;
 
@@ -34,6 +35,9 @@ class PaymentServiceIntegrationTest {
 	private PaymentRepository paymentRepository;
 
 	@Autowired
+	private DiscountHistoryRepository discountHistoryRepository;
+
+	@Autowired
 	private OrderRepository orderRepository;
 
 	@Autowired
@@ -41,6 +45,7 @@ class PaymentServiceIntegrationTest {
 
 	@AfterEach
 	void tearDown() {
+		discountHistoryRepository.deleteAllInBatch();
 		paymentRepository.deleteAllInBatch();
 		orderRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();

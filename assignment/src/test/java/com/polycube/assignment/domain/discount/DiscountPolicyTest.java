@@ -124,5 +124,15 @@ class DiscountPolicyTest {
 		public BigDecimal calculateDiscount(BigDecimal originalPrice) {
 			return amount;
 		}
+
+		@Override
+		public String policyName() {
+			return "테스트 고정 할인 (priority=" + priority + ")";
+		}
+
+		@Override
+		public BigDecimal discountRate() {
+			return BigDecimal.ZERO;
+		}
 	}
 }

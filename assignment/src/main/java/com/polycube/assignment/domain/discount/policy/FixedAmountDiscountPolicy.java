@@ -22,4 +22,14 @@ public class FixedAmountDiscountPolicy implements DiscountPolicy {
 			? originalPrice
 			: DISCOUNT_AMOUNT;
 	}
+
+	@Override
+	public String policyName() {
+		return "VIP 고정 금액 할인";
+	}
+
+	@Override
+	public BigDecimal discountRate() {
+		return BigDecimal.ZERO;
+	}
 }

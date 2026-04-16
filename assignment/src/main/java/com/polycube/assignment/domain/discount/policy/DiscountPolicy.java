@@ -13,4 +13,8 @@ public interface DiscountPolicy {
 	boolean supports(MemberGrade grade);
 
 	BigDecimal calculateDiscount(BigDecimal originalPrice);
+
+	String policyName();
+
+	BigDecimal discountRate();
 }

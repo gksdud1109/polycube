@@ -21,4 +21,14 @@ public class RateDiscountPolicy implements DiscountPolicy {
 	public BigDecimal calculateDiscount(BigDecimal originalPrice) {
 		return originalPrice.multiply(RATE).setScale(0, RoundingMode.DOWN);
 	}
+
+	@Override
+	public String policyName() {
+		return "VVIP 비율 할인";
+	}
+
+	@Override
+	public BigDecimal discountRate() {
+		return RATE;
+	}
 }
