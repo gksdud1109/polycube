@@ -6,6 +6,10 @@ import com.polycube.assignment.domain.member.entity.MemberGrade;
 
 public interface DiscountPolicy {
 
+	default int priority() {
+		return 0;
+	}
+
 	boolean supports(MemberGrade grade);
 
 	BigDecimal calculateDiscount(BigDecimal originalPrice);

@@ -83,4 +83,46 @@ class DiscountPolicyTest {
 			assertThat(discount).isEqualByComparingTo(new BigDecimal("1555"));
 		}
 	}
+
+	@Test
+	@DisplayName("여러 할인 정책이 동시에 적용되면 우선순위와 무관하게 모두 합산되고 과할인은 방지된다")
+	void multiplePoliciesAreAppliedDeterministically() {
+		DiscountService stackedDiscountService = new DiscountService(List.of(
+			new TestFixedDiscountPolicy(2, MemberGrade.VIP, new BigDecimal("700")),
+			new TestFixedDiscountPolicy(1, MemberGrade.VIP, new BigDecimal("500"))
+		));
+
+		BigDecimal price = new BigDecimal("1000");
+		BigDecimal discount = stackedDiscountService.calculateDiscount(MemberGrade.VIP, price);
+
+		assertThat(discount).isEqualByComparingTo(price);
+	}
+
+	private static class TestFixedDiscountPolicy implements DiscountPolicy {
+
+		private final int priority;
+		private final MemberGrade grade;
+		private final BigDecimal amount;
+
+		private TestFixedDiscountPolicy(int priority, MemberGrade grade, BigDecimal amount) {
+			this.priority = priority;
+			this.grade = grade;
+			this.amount = amount;
+		}
+
+		@Override
+		public int priority() {
+			return priority;
+		}
+
+		@Override
+		public boolean supports(MemberGrade grade) {
+			return this.grade == grade;
+		}
+
+		@Override
+		public BigDecimal calculateDiscount(BigDecimal originalPrice) {
+			return amount;
+		}
+	}
 }
