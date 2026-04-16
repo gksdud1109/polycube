@@ -9,11 +9,11 @@ import com.polycube.assignment.domain.order.entity.Order;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-	@Modifying
+	@Modifying(flushAutomatically = true)
 	@Query("""
 		UPDATE Order o
 		SET o.status = 'PAID'
-		WHERE o.id = :orderID AND o.status = 'READY'
+		WHERE o.id = :orderId AND o.status = 'READY'
 		""")
 	int markPaid(@Param("orderId") Long orderId);
 }

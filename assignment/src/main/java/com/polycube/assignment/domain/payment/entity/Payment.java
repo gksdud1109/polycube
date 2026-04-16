@@ -15,7 +15,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -42,13 +41,17 @@ public class Payment extends BaseEntity {
 	@Column(nullable = false)
 	private LocalDateTime paidAt;
 
-	@Builder
-	public Payment(Order order, BigDecimal discountAmount, BigDecimal finalAmount,
-				   PaymentMethod method, LocalDateTime paidAt) {
+	private Payment(Order order, BigDecimal discountAmount, BigDecimal finalAmount,
+		PaymentMethod method, LocalDateTime paidAt) {
 		this.order = order;
 		this.discountAmount = discountAmount;
 		this.finalAmount = finalAmount;
 		this.method = method;
 		this.paidAt = paidAt;
+	}
+
+	public static Payment create(Order order, BigDecimal discountAmount, BigDecimal finalAmount,
+		PaymentMethod method) {
+		return new Payment(order, discountAmount, finalAmount, method, LocalDateTime.now());
 	}
 }

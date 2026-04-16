@@ -3,7 +3,9 @@ package com.polycube.assignment.domain.order.entity;
 import java.math.BigDecimal;
 
 import com.polycube.assignment.domain.member.entity.Member;
+import com.polycube.assignment.domain.order.exception.OrderErrorCode;
 import com.polycube.assignment.global.entity.BaseEntity;
+import com.polycube.assignment.global.error.BusinessException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,4 +48,10 @@ public class Order extends BaseEntity {
 		this.status = OrderStatus.READY;
 	}
 
+	// 결제 가능 상태인지 검증만 담당 (상태 변경은 CAS 쿼리에 위임)
+	public void validatePayable() {
+		if (this.status != OrderStatus.READY) {
+			throw new BusinessException(OrderErrorCode.NOT_PAYABLE);
+		}
+	}
 }

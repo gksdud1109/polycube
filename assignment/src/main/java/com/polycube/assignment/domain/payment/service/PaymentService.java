@@ -1,8 +1,8 @@
 package com.polycube.assignment.domain.payment.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,36 +32,32 @@ public class PaymentService {
 		Order order = orderRepository.findById(request.orderId())
 			.orElseThrow(() -> new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND));
 
-		if (paymentRepository.existsByOrderId(order.getId())) {
-			throw new BusinessException(PaymentErrorCode.ALREADY_PAID);
-		}
-
 		BigDecimal originalPrice = order.getOriginalPrice();
 
-		// 할인율 계산
+		// 할인가 계산
 		BigDecimal discountAmount = discountService.calculateDiscount(
 			order.getMember().getGrade(), originalPrice);
 
-		// 최종 가격 = 원가 - 할인가격
+		// 최종 금액 = 원가 - 할인가
 		BigDecimal finalAmount = originalPrice.subtract(discountAmount);
 
-		// 상태 기반 업데이트 쿼리 OrderStatus READY -> PAID
+		// 주문 상태 업데이트 & 멱등체크
 		int updated = orderRepository.markPaid(order.getId());
-		if(updated == 0){
-			throw new BusinessException(PaymentErrorCode.ALREADY_PAID);
+		if (updated == 0) {
+			return paymentRepository.findByOrderId(order.getId())
+				.map(PaymentResponse::from)
+				.orElseThrow(() -> new BusinessException(PaymentErrorCode.ALREADY_PAID));
 		}
 
-		Payment payment = Payment.builder()
-			.order(order)
-			.discountAmount(discountAmount)
-			.finalAmount(finalAmount)
-			.method(request.method())
-			.paidAt(LocalDateTime.now())
-			.build();
+		Payment payment = Payment.create(order, discountAmount, finalAmount, request.method());
 
-		Payment saved = paymentRepository.save(payment);
-		return PaymentResponse.from(saved);
+		try {
+			Payment saved = paymentRepository.saveAndFlush(payment);
+			return PaymentResponse.from(saved);
+		} catch (DataIntegrityViolationException ex) {
+			return paymentRepository.findByOrderId(order.getId())
+				.map(PaymentResponse::from)
+				.orElseThrow(() -> ex);
+		}
 	}
-
-
 }
